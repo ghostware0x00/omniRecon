@@ -3,12 +3,12 @@ import argparse
 from colorama import Fore, Style, init # colorama to add color to text displayed using print() function
 init(autoreset=True)# resets color of the print() text each time 
 
-def target_connect(target, port):
+def port_scanning(target, port):
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:# creating a socket object
             # using the with keyword the socket object is closed automatically no matter what
             client.connect((target, port))
-            
+
     except KeyboardInterrupt: # when CTRL + C is pressed in keyboard (useful to exit the program)
         print(f"{Fore.BLUE}[x]closing connection")
     except OSError as e: # handles exception when we fail to connect to our target (such scenarios)
@@ -26,7 +26,7 @@ def parseArgs():
 def get_args():
     args = parseArgs() # (args) stores the arguments suppied
     if args.target and args.port:
-        target_connect(args.target, int(args.port))
+        port_scanning(args.target, int(args.port))
     else:
         print(f"{Style.BRIGHT}{Fore.YELLOW}[x]missing or incorrect arguments")
 
