@@ -8,13 +8,14 @@ def port_scanning(target, port):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:# creating a socket object
             # using the with keyword the socket object is closed automatically no matter what
             client.connect((target, port))
-
-    except KeyboardInterrupt: # when CTRL + C is pressed in keyboard (useful to exit the program)
-        print(f"{Fore.BLUE}[x]closing connection")
-    except OSError as e: # handles exception when we fail to connect to our target (such scenarios)
-        print(f"{Fore.Red}[x]Could not connect to target. Target unreachable: {e}")
-
-
+            print(f"{Fore.GREEN}xxxxxxxxxxxxxxxxxxxxxxxxx SCAN RESULTS xxxxxxxxxxxxxxxxxxxxxxxxxxx")
+            if port != 80 or 443: # port 80 is http and 443 is https so we need the client to talk first before target sends message
+                service_info = client.recv(10000)
+                print(f"{service_info}")
+    except KeyboardInterrupt:
+        print(f"{Fore.CYAN}[x]closing connection")
+    except OSError as e:
+        print(f"{Fore.RED}Socket connection timed out : {e}")
 
 def parseArgs():
     parser = argparse.ArgumentParser(description ="take omnirecon arguments") 
