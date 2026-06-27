@@ -67,6 +67,7 @@ def fullTCPScan(TARGET, PORT):
                     scan_results['state'] = 'Open'
                     bannerGrab_HTTP(client, TARGET) # function to handle http
                 elif port in (22, 21, 25, 3306): # SSH FTP SMTP MySQL
+                    scan_results['state'] = 'Open'
                     bannerGrab_ServerFirstArch(client) # handle server first architecture protocols
                 #elif port 
             except TimeoutError as t: # port might be open but firewall might filter that so it will drop packets (in that scenario we check so timeout) so that the socket doesn't wait indefinetly
