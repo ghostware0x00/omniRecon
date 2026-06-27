@@ -42,7 +42,7 @@ def fullTCPScan(TARGET, PORT):
             port = int(port) # convert string to int (since PORT is taken in command line argument)
             try:
                 scan_results = {"port":port, "state":"", "service":"", "version":""}
-                scan_results['service'] = client.getservbyport(port, "tcp")
+                scan_results['service'] = socket.getservbyport(port, "tcp")
                 client.settimeout(10)
                 client.connect((TARGET, port))
                 if port == 80: #HTTP
