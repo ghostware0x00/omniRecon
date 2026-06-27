@@ -22,37 +22,36 @@ def bannerGrab_HTTP(client, TARGET): # banner grabbing for http
     client.sendall(request_payload.encode())# encoding to utf8 format
     response = client.recv(4096)
     if response:
-        print(f"{Fore.CYAN}{response.decode()}")
+        print(f"{Fore.GREEN}{response.decode()}")
 
 
 
 def port_scanning_and_service_enumeration(TARGET, PORT):
     # the port_scanning should accept multiple ports
     # this can be implemented using nargs in argsparser
-    print(f"{Fore.GREEN}[*]Initiating OMNIRECON Port Scanning and Service Enumeration...")
+    print(f"{Fore.GREEN}[*]Initiating OMNIRECON Port Scanning and Service Enumeration on {TARGET} on port {PORT}")
     print(f"{Fore.GREEN}<---------------- SCAN RESULTS ---------------->")
-    print(f"|PORTS\t|Connection\t|Service Version|------->")
     try:        
         for port in PORT:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:# creating a socket object # using the with keyword the socket object is closed automatically matter what
                 port = int(port) # convert string to int (since PORT is taken in command line argument)
                 try:
-                    client.settimeout(30)
+                    client.settimeout(3)
                     client.connect((TARGET, port))
-                    print(f"")
                     if port == 80: #HTTP
                         bannerGrab_HTTP(client, TARGET) # function to handle http
                     elif port in (22, 21, 25, 3306): # SSH FTP SMTP MySQL
                         bannerGrab_ServerFirstArch(client) # handle server first architecture protocols
                     #elif port 
                 except TimeoutError as t: # port might be open but firewall might filter that so it will drop packets (in that scenario we check so timeout) so that the socket doesn't wait indefinetly
-                    print(f"{Fore.GREEN}{PORT}\tFiltered")
+                    print(f"{Fore.GREEN}{port}\tFiltered")
                 except ConnectionRefusedError as c: # port might be closed so the server will send rst flag refusing connection (such scenario raises this exception)
                     print(f"{Fore.GREEN}{PORT}\tClosed")
                 except OSError as e:
                     print(f"{Fore.RED}Couldn't connect to target. Target Unreachable: {e}")
+                    break
     except KeyboardInterrupt:
-        print(f"{Fore.RED}[x]closing omniRecon port scanning....")
+        print(f"{Fore.RED}[x]closing omniRecon port scanning...")
 
 
 
