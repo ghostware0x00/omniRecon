@@ -21,7 +21,7 @@ COMMON_SERVICES = {
 }
 
 def display_scan_output(scan_results): # display scan_result output from the dictionary
-    print(f"{Style.BRIGHT}{Fore.LIGHTGREEN_EX}{scan_results['port']}\t{scan_results['state']}\t{scan_results['service']}\t{scan_results['version']}")
+    print(f"{Fore.GREEN}{scan_results['port']}\t{scan_results['state']}\t{scan_results['service']}\t{scan_results['version']}")
     
 
 def bannerGrab_ServerFirstArch(client): # services which do not require the client to send data first but server responds immediately upon connection
@@ -49,7 +49,7 @@ def bannerGrab_HTTP(client, TARGET): # banner grabbing for http
 def fullTCPScan(TARGET, PORT):
     # the port_scanning should accept multiple ports
     # this can be implemented using nargs in argsparser
-    print(f"{Style.BRIGHT}{Fore.GREEN}[*]Starting OMNIRECON Full TCP Port Scanning and Service Enumeration on {TARGET} on port {PORT}")
+    print(f"{Style.BRIGHT}{Fore.GREEN}[*]Starting scan on {TARGET}")
     print(f"<---------------- SCAN RESULTS ---------------->")   
     print(f"PORT\tSTATE\tSERVICE\tVERSION\n") 
     for port in PORT:
@@ -66,7 +66,7 @@ def fullTCPScan(TARGET, PORT):
                 if port == 80: #HTTP
                     scan_results['state'] = 'Open'
                     bannerGrab_HTTP(client, TARGET) # function to handle http
-                elif port in (22, 21, 25, 3306): # SSH FTP SMTP MySQL
+                elif port in (22, 21, 23, 25, 3306): # SSH FTP SMTP MySQL
                     scan_results['state'] = 'Open'
                     bannerGrab_ServerFirstArch(client) # handle server first architecture protocols
                 #elif port 
