@@ -4,15 +4,10 @@ from colorama import Fore, Style, init # colorama to add color to text displayed
 init(autoreset=True)# resets color of the print() text each time 
 
 
-def scan_results_template(port, state, service=None, version=None):
-    scan_results = {"port":"", "state":"", "service":"", "version":""}
-    scan_results['port'] = port
-    scan_results['state'] = state
-    scan_results['service'] = service
-    scan_results['version'] = version
+
+def display_scan_output(scan_results): # display scan_result output from the dictionary
     print(f"{scan_results['port']}\t{scan_results['state']}\t{scan_results['service']}\t{scan_results['version']}")
-
-
+    
 
 def bannerGrab_ServerFirstArch(client): # services which do not require the client to send data first but server responds immediately upon connection
     service_info = client.recv(4096)
@@ -22,7 +17,6 @@ def bannerGrab_ServerFirstArch(client): # services which do not require the clie
 
 
 def bannerGrab_HTTP(client, TARGET): # banner grabbing for http
-    scan_results = {"port":"80", "state":"open", "service":"", "version":""}
     request_payload = (
         f"GET / HTTP/1.1\r\n"
         f"Host: {TARGET}\r\n"
@@ -32,8 +26,8 @@ def bannerGrab_HTTP(client, TARGET): # banner grabbing for http
     client.sendall(request_payload.encode())# encoding to utf8 format
     response = client.recv(4096)
     if response:
-        response = response.decode().split('\r\n')
-        print(f"{response}")
+        print(f"{response.decode()}")
+
 
 
 
@@ -42,15 +36,17 @@ def fullTCPScan(TARGET, PORT):
     # this can be implemented using nargs in argsparser
     print(f"{Style.BRIGHT}{Fore.GREEN}[*]Starting OMNIRECON Full TCP Port Scanning and Service Enumeration on {TARGET} on port {PORT}")
     print(f"<---------------- SCAN RESULTS ---------------->")   
-    print(f"PORT\tSTATE\tSERVICE\tVERSION") 
+    print(f"PORT\tSTATE\tSERVICE\tVERSION\n") 
     for port in PORT:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:# creating a socket object # using the with keyword the socket object is closed automatically matter what
             port = int(port) # convert string to int (since PORT is taken in command line argument)
             try:
+                scan_results = {"port":port, "state":"", "service":"", "version":""}
+                scan_results['service'] = client.getservbyport(port, "tcp")
                 client.settimeout(10)
                 client.connect((TARGET, port))
-                scan_results = {"port":port, "state":"", "service":"", "version":""}
                 if port == 80: #HTTP
+                    scan_results['state'] = 'Open'
                     bannerGrab_HTTP(client, TARGET) # function to handle http
                 elif port in (22, 21, 25, 3306): # SSH FTP SMTP MySQL
                     bannerGrab_ServerFirstArch(client) # handle server first architecture protocols
@@ -64,6 +60,8 @@ def fullTCPScan(TARGET, PORT):
                 break
             except KeyboardInterrupt:
                 print(f"{Fore.RED}[x]closing omniRecon port scanning...")
+            finally:
+                display_scan_output(scan_results)
 
 
 
