@@ -29,15 +29,6 @@ def display_scan_output(scan_results): # display scan_result output from the dic
     
 
 
-def bannerGrab_parsing1(response): # takes the server response and parses the response to retrieve the service version 
-    # this bannerGrab parsing is for ports 21 23 25 3306 80
-    if response:
-        response = response.decode(errors="ignore").split("\r\n")
-        version = response[2].replace("Server: ", "") # storing server version number
-        return version
-
-
-
 def bannerGrab_http(client, TARGET): # http banner grabbing
     request_payload = (
         f"GET / HTTP/1.1\r\n"
@@ -47,19 +38,30 @@ def bannerGrab_http(client, TARGET): # http banner grabbing
     )
     client.sendall(request_payload.encode())# encoding to utf8 format
     response = client.recv(4096)
-    version = bannerGrab_parsing1(response)
-    return version
+    if response:
+        response = response.decode(errors="ignore").split("\r\n")
+        for line in response:
+            if line.startswith("Server:"):
+                version = line.replace("Server:", "").strip() # replace extra spaces and replace Server header tag and only retrieve the version info
+                return version
 
 
 
 def bannerGrab(client, TARGET, port): # banner grabbing
-    if port == 80:
+    #implement individual bannerGrab and parsing for each port service
+    # services parsing and banner grabbing to be implemented => ftp, ssh, telnet, smtp, mysql
+    if port == 21:
+        pass
+    elif port == 22:
+        pass
+    elif port == 23:
+        pass
+    elif port == 25:
+        pass
+    elif port == 80:
         return bannerGrab_http(client, TARGET)
-    elif port in (21, 22, 23, 25, 3306):
-        response = client.recv(4096)
-        return bannerGrab_parsing1(response)
-
-
+    elif port == 3306:
+        pass
 
 def fullTCPScan(TARGET, PORT):
     # the port_scanning should accept multiple ports
