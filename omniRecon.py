@@ -105,7 +105,7 @@ def parseArgs():
 
 
 def get_args():
-    args = parseArgs() # (args) stores the arguments suppied
+    args = parseArgs() # (args) stores the arguments supplied
     if args.fullTCP and args.target and args.port:
         fullTCPScan(args.target, args.port)
     else:
