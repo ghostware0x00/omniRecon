@@ -18,30 +18,36 @@ COMMON_SERVICES = {
     3389: "rdp",
     5432: "postgresql",
     6379: "redis",
-}
+}    
 
 def display_scan_output(scan_results): # display scan_result output from the dictionary
-    print(f"{Fore.GREEN}{scan_results['port']}\t{scan_results['state']}\t{scan_results['service']}\t{scan_results['version']}")
+    # print(f"{Fore.GREEN}{scan_results['port']}\t{scan_results['state']}\t{scan_results['service']}\t{scan_results['version']}")
+    print(f"PORT: {scan_results['port']}")
+    print(f"STATE: {scan_results['state']}")
+    print(f"SERVICE: {scan_results['service']}")
     
 
-def bannerGrab_ServerFirstArch(client): # services which do not require the client to send data first but server responds immediately upon connection
-    service_info = client.recv(4096)
-    if service_info:
-        print(f"{service_info.decode()}")
+# def bannerGrab_ServerFirstArch(client): # services which do not require the client to send data first but server responds immediately upon connection
+#     service_info = client.recv(4096)
+#     if service_info:
+#         print(f"{service_info.decode(errors="ignore")}")
 
 
 
-def bannerGrab_HTTP(client, TARGET): # banner grabbing for http
+def bannerGrab(client, TARGET, port): # banner grabbing for http
     request_payload = (
         f"GET / HTTP/1.1\r\n"
         f"Host: {TARGET}\r\n"
         f"User-Agent: omniRecon\r\n"
         f"Accept: text/html\r\n\r\n"
     )
-    client.sendall(request_payload.encode())# encoding to utf8 format
+    if port == 80:
+        client.sendall(request_payload.encode())# encoding to utf8 format
     response = client.recv(4096)
     if response:
-        print(f"{response.decode()}")
+        response = response.decode(errors="ignore").split("\r\n")
+        version = response[2] # storing server version number
+        print(f"{Fore.GREEN}{version}")
 
 
 
@@ -50,8 +56,6 @@ def fullTCPScan(TARGET, PORT):
     # the port_scanning should accept multiple ports
     # this can be implemented using nargs in argsparser
     print(f"{Style.BRIGHT}{Fore.GREEN}[*]Starting scan on {TARGET}")
-    print(f"<---------------- SCAN RESULTS ---------------->")   
-    print(f"PORT\tSTATE\tSERVICE\tVERSION\n") 
     for port in PORT:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:# creating a socket object # using the with keyword the socket object is closed automatically matter what
             port = int(port) # convert string to int (since PORT is taken in command line argument)
@@ -65,10 +69,10 @@ def fullTCPScan(TARGET, PORT):
                 client.connect((TARGET, port))
                 if port == 80: #HTTP
                     scan_results['state'] = 'Open'
-                    bannerGrab_HTTP(client, TARGET) # function to handle http
+                    bannerGrab(client, TARGET, port) # function to handle http
                 elif port in (22, 21, 23, 25, 3306): # SSH FTP SMTP MySQL
                     scan_results['state'] = 'Open'
-                    bannerGrab_ServerFirstArch(client) # handle server first architecture protocols
+                    bannerGrab(client, TARGET, port) # handle server first architecture protocols
                 #elif port 
             except TimeoutError as t: # port might be open but firewall might filter that so it will drop packets (in that scenario we check so timeout) so that the socket doesn't wait indefinetly
                 scan_results['state'] = 'Filtered'
