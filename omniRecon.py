@@ -21,41 +21,51 @@ COMMON_SERVICES = {
 }    
 
 def display_scan_output(scan_results): # display scan_result output from the dictionary
-    # print(f"{Fore.GREEN}{scan_results['port']}\t{scan_results['state']}\t{scan_results['service']}\t{scan_results['version']}")
-    print(f"PORT: {scan_results['port']}")
-    print(f"STATE: {scan_results['state']}")
-    print(f"SERVICE: {scan_results['service']}")
+    print(f"------------------------------------------------------------------------------------")
+    print(f"PORT: {Fore.GREEN}{scan_results['port']}")
+    print(f"STATE: {Fore.GREEN}{scan_results['state']}")
+    print(f"SERVICE: {Fore.GREEN}{scan_results['service']}")
+    print(f"VERSION: {Fore.GREEN}{scan_results['version']}")
     
 
-# def bannerGrab_ServerFirstArch(client): # services which do not require the client to send data first but server responds immediately upon connection
-#     service_info = client.recv(4096)
-#     if service_info:
-#         print(f"{service_info.decode(errors="ignore")}")
+
+def bannerGrab_parsing1(response): # takes the server response and parses the response to retrieve the service version 
+    # this bannerGrab parsing is for ports 21 23 25 3306 80
+    if response:
+        response = response.decode(errors="ignore").split("\r\n")
+        version = response[2].replace("Server: ", "") # storing server version number
+        return version
 
 
 
-def bannerGrab(client, TARGET, port): # banner grabbing for http
+def bannerGrab_http(client, TARGET): # http banner grabbing
     request_payload = (
         f"GET / HTTP/1.1\r\n"
         f"Host: {TARGET}\r\n"
         f"User-Agent: omniRecon\r\n"
         f"Accept: text/html\r\n\r\n"
     )
-    if port == 80:
-        client.sendall(request_payload.encode())# encoding to utf8 format
+    client.sendall(request_payload.encode())# encoding to utf8 format
     response = client.recv(4096)
-    if response:
-        response = response.decode(errors="ignore").split("\r\n")
-        version = response[2] # storing server version number
-        print(f"{Fore.GREEN}{version}")
+    version = bannerGrab_parsing1(response)
+    return version
 
+
+
+def bannerGrab(client, TARGET, port): # banner grabbing
+    if port == 80:
+        return bannerGrab_http(client, TARGET)
+    elif port in (21, 22, 23, 25, 3306):
+        response = client.recv(4096)
+        return bannerGrab_parsing1(response)
 
 
 
 def fullTCPScan(TARGET, PORT):
     # the port_scanning should accept multiple ports
     # this can be implemented using nargs in argsparser
-    print(f"{Style.BRIGHT}{Fore.GREEN}[*]Starting scan on {TARGET}")
+    print(f"{Style.BRIGHT}{Fore.GREEN}[*]Starting FullTCP Scan")
+    print(f"{Fore.GREEN}omniRecon scan report for {TARGET}\n")
     for port in PORT:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:# creating a socket object # using the with keyword the socket object is closed automatically matter what
             port = int(port) # convert string to int (since PORT is taken in command line argument)
@@ -67,13 +77,8 @@ def fullTCPScan(TARGET, PORT):
                     scan_results['service'] = COMMON_SERVICES.get(port, 'unknown') # if common services list doesn't have that particular port service info then store unknown
                 client.settimeout(10)
                 client.connect((TARGET, port))
-                if port == 80: #HTTP
-                    scan_results['state'] = 'Open'
-                    bannerGrab(client, TARGET, port) # function to handle http
-                elif port in (22, 21, 23, 25, 3306): # SSH FTP SMTP MySQL
-                    scan_results['state'] = 'Open'
-                    bannerGrab(client, TARGET, port) # handle server first architecture protocols
-                #elif port 
+                scan_results['state'] = 'Open'
+                scan_results['version'] = bannerGrab(client, TARGET, port)
             except TimeoutError as t: # port might be open but firewall might filter that so it will drop packets (in that scenario we check so timeout) so that the socket doesn't wait indefinetly
                 scan_results['state'] = 'Filtered'
             except ConnectionRefusedError as c: # port might be closed so the server will send rst flag refusing connection (such scenario raises this exception)
@@ -92,7 +97,7 @@ def parseArgs():
     parser = argparse.ArgumentParser(description ="take omnirecon arguments") 
     parser.add_argument("-t", "--target", metavar="www.example.com", help="Provide domain name or IP address") # metavar = placeholder for the value which you need to give # help = description for the placeholder about what to input
     parser.add_argument("-p", "--port", nargs='*' ,metavar="80", help="Provide target port to connect with") # nargs allows multiple values for a single command line argument also nargs='*' allows 0 or more values to be given as command line value. nargs takes the values as list []
-    parser.add_argument("-sT", "--fullTCP", action="store_true", help="Perform Full TCP Scan (3 way Handshake)")
+    parser.add_argument("-sT", "--fullTCP", action="store_true", help="Perform Full TCP Scan (3 way Handshake)")# argument to perform Full TCP 3 way Handshake Scan
     return parser.parse_args()
 
 
