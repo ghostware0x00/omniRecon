@@ -21,12 +21,17 @@ COMMON_SERVICES = {
 }    
 
 def display_scan_output(scan_results): # display scan_result output from the dictionary
-    print(f"------------------------------------------------------------------------------------")
-    print(f"PORT: {Fore.GREEN}{scan_results['port']}")
-    print(f"STATE: {Fore.GREEN}{scan_results['state']}")
-    print(f"SERVICE: {Fore.GREEN}{scan_results['service']}")
-    print(f"VERSION: {Fore.GREEN}{scan_results['version']}")
-    
+    # print(f"PORT: {Fore.GREEN}{scan_results['port']}")
+    # print(f"STATE: {Fore.GREEN}{scan_results['state']}")
+    # print(f"SERVICE: {Fore.GREEN}{scan_results['service']}")
+    # print(f"VERSION: {Fore.GREEN}{scan_results['version']}")
+    # print("\n")
+    print(
+        f"{Fore.GREEN}{scan_results['port']:<10}"
+        f"{Fore.GREEN}{scan_results['state']:<10}"
+        f"{Fore.GREEN}{scan_results['service']:<12}"
+        f"{Fore.GREEN}{scan_results['version']}"
+    )
 
 
 def bannerGrab_http(client, TARGET): # http banner grabbing
@@ -68,6 +73,7 @@ def fullTCPScan(TARGET, PORT):
     # this can be implemented using nargs in argsparser
     print(f"{Style.BRIGHT}{Fore.GREEN}[*]Starting FullTCP Scan")
     print(f"{Fore.GREEN}omniRecon scan report for {TARGET}\n")
+    print(f"{'PORT':<10}{'STATE':<10}{'SERVICE':<12}{'VERSION'}") # aligning to left 10 character width for port and state and 12 character left alignment for service. <(left alignment) and >(right alignment)
     for port in PORT:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:# creating a socket object # using the with keyword the socket object is closed automatically matter what
             port = int(port) # convert string to int (since PORT is taken in command line argument)
