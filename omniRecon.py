@@ -21,11 +21,6 @@ COMMON_SERVICES = {
 }    
 
 def display_scan_output(scan_results): # display scan_result output from the dictionary
-    # print(f"PORT: {Fore.GREEN}{scan_results['port']}")
-    # print(f"STATE: {Fore.GREEN}{scan_results['state']}")
-    # print(f"SERVICE: {Fore.GREEN}{scan_results['service']}")
-    # print(f"VERSION: {Fore.GREEN}{scan_results['version']}")
-    # print("\n")
     print(
         f"{Fore.GREEN}{scan_results['port']:<10}"
         f"{Fore.GREEN}{scan_results['state']:<10}"
@@ -33,8 +28,17 @@ def display_scan_output(scan_results): # display scan_result output from the dic
         f"{Fore.GREEN}{scan_results['version']}"
     )
 
+def bannerGrab_ftp(client):# port 21 ftp banner grabbing
+    version = client.recv(4096).decode(errors="ignore").strip()
+    return version
 
-def bannerGrab_http(client, TARGET): # http banner grabbing
+def bannerGrab_ssh(client):# port 22 ssh banner grabbing
+    version = client.recv(4096).decode(errors="ignore").split("-")
+    version = ''.join(version).strip()
+    return version
+
+
+def bannerGrab_http(client, TARGET): # port 80 http banner grabbing
     request_payload = (
         f"GET / HTTP/1.1\r\n"
         f"Host: {TARGET}\r\n"
@@ -56,9 +60,9 @@ def bannerGrab(client, TARGET, port): # banner grabbing
     #implement individual bannerGrab and parsing for each port service
     # services parsing and banner grabbing to be implemented => ftp, ssh, telnet, smtp, mysql
     if port == 21:
-        pass
+        return bannerGrab_ftp(client)
     elif port == 22:
-        pass
+        return bannerGrab_ssh(client)
     elif port == 23:
         pass
     elif port == 25:
