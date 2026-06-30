@@ -32,10 +32,25 @@ def bannerGrab_ftp(client):# port 21 ftp banner grabbing
     version = client.recv(4096).decode(errors="ignore").strip()
     return version
 
+
 def bannerGrab_ssh(client):# port 22 ssh banner grabbing
     version = client.recv(4096).decode(errors="ignore").split("-")
-    version = ''.join(version).strip()
+    version = ''.join(version).strip().replace("SSH2.0", "")
     return version
+
+
+def bannerGrab_telnet(client):# port 23 telnet banner grabbing
+    # telnet has negotiation bytes i.e. telnet communicates with the client about what software, terminal, window size is the client having and the client replies.
+    # I need to detect these negotiation bytes and then print only the part necessary for banner grabbing.
+    # total of 3 negotitation bytes
+    response = client.recv(4096)
+    for byte in response:
+        if byte.hex() != 0xFF:
+            version = version + byte
+            version = version.decode(errors="ignore")
+            return version
+        
+
 
 
 def bannerGrab_http(client, TARGET): # port 80 http banner grabbing
@@ -64,7 +79,7 @@ def bannerGrab(client, TARGET, port): # banner grabbing
     elif port == 22:
         return bannerGrab_ssh(client)
     elif port == 23:
-        pass
+        return bannerGrab_telnet(client)
     elif port == 25:
         pass
     elif port == 80:
@@ -89,12 +104,12 @@ def fullTCPScan(TARGET, PORT):
                     scan_results['service'] = COMMON_SERVICES.get(port, 'unknown') # if common services list doesn't have that particular port service info then store unknown
                 client.settimeout(10)
                 client.connect((TARGET, port))
-                scan_results['state'] = 'Open'
+                scan_results['state'] = 'open'
                 scan_results['version'] = bannerGrab(client, TARGET, port)
             except TimeoutError as t: # port might be open but firewall might filter that so it will drop packets (in that scenario we check so timeout) so that the socket doesn't wait indefinetly
-                scan_results['state'] = 'Filtered'
+                scan_results['state'] = 'filtered'
             except ConnectionRefusedError as c: # port might be closed so the server will send rst flag refusing connection (such scenario raises this exception)
-                scan_results['state'] = 'Closed'
+                scan_results['state'] = 'closed'
             except OSError as e:
                 print(f"{Fore.RED}Couldn't connect to target. Target Unreachable: {e}")
                 break
@@ -103,6 +118,13 @@ def fullTCPScan(TARGET, PORT):
             finally:
                 display_scan_output(scan_results)
 
+
+def parseInput(TARGET): # remove http or https and 
+    if "http://" in TARGET:
+        TARGET = TARGET.replace("http://", "")
+    elif "https://" in TARGET:
+        TARGET = TARGET.replace("https://", "")
+    return TARGET
 
 
 def parseArgs():
@@ -117,6 +139,7 @@ def parseArgs():
 def get_args():
     args = parseArgs() # (args) stores the arguments supplied
     if args.fullTCP and args.target and args.port:
+        args.target = parseInput(args.target)
         fullTCPScan(args.target, args.port)
     else:
         print(f"{Style.BRIGHT}{Fore.YELLOW}[x]missing or incorrect arguments")
