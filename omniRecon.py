@@ -45,7 +45,7 @@ def bannerGrab_telnet(client):# port 23 telnet banner grabbing
     # total of 3 negotitation bytes
     response = client.recv(4096)
     for byte in response:
-        if byte.hex() != 0xFF:
+        if byte != 0xFF:
             version = version + byte
             version = version.decode(errors="ignore")
             return version
