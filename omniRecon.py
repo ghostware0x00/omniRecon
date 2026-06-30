@@ -28,7 +28,7 @@ def display_scan_output(scan_results): # display scan_result output from the dic
         f"{Fore.GREEN}{scan_results['version']}"
     )
 
-def bannerGrab_ftp(client):# port 21 ftp banner grabbing
+def bannerGrab_ftp_telnet(client):# port 21 23 ftp telnet banner grabbing
     version = client.recv(4096).decode(errors="ignore").strip()
     return version
 
@@ -37,20 +37,6 @@ def bannerGrab_ssh(client):# port 22 ssh banner grabbing
     version = client.recv(4096).decode(errors="ignore").split("-")
     version = ''.join(version).strip().replace("SSH2.0", "")
     return version
-
-
-def bannerGrab_telnet(client):# port 23 telnet banner grabbing
-    # telnet has negotiation bytes i.e. telnet communicates with the client about what software, terminal, window size is the client having and the client replies.
-    # I need to detect these negotiation bytes and then print only the part necessary for banner grabbing.
-    # total of 3 negotitation bytes
-    response = client.recv(4096)
-    for byte in response:
-        if byte != 0xFF:
-            version = version + byte
-            version = version.decode(errors="ignore")
-            return version
-        
-
 
 
 def bannerGrab_http(client, TARGET): # port 80 http banner grabbing
@@ -75,11 +61,11 @@ def bannerGrab(client, TARGET, port): # banner grabbing
     #implement individual bannerGrab and parsing for each port service
     # services parsing and banner grabbing to be implemented => ftp, ssh, telnet, smtp, mysql
     if port == 21:
-        return bannerGrab_ftp(client)
+        return bannerGrab_ftp_telnet(client)
     elif port == 22:
         return bannerGrab_ssh(client)
     elif port == 23:
-        return bannerGrab_telnet(client)
+        return bannerGrab_ftp_telnet(client)
     elif port == 25:
         pass
     elif port == 80:
