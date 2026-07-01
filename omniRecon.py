@@ -4,17 +4,17 @@ from colorama import Fore, Style, init # colorama to add color to text displayed
 init(autoreset=True)# resets color of the print() text each time 
 
 COMMON_SERVICES = {
-    21: "ftp",
-    22: "ssh",
-    23: "telnet",
-    25: "smtp",
+    21: "ftp", # done
+    22: "ssh", # done
+    23: "telnet", # done
+    25: "smtp", 
     53: "dns",
-    80: "http",
+    80: "http", # done
     110: "pop3",
     143: "imap",
-    443: "https",
+    443: "https", 
     445: "smb",
-    3306: "mysql",
+    3306: "mysql", # done
     3389: "rdp",
     5432: "postgresql",
     6379: "redis",
@@ -60,7 +60,7 @@ def bannerGrab_mysql(client):
     # | Status Flags...    |
     # | ...                |
     # +--------------------+
-    version = content[5:].split(b'\x00')[0].decode(errors="ignore") # content[5:] means store bytes from 5th index and split when null character(\x00) is seen and pick the first part [0]
+    version = content[5:].split(b'\x00')[0].decode(errors="ignore") # content[5:] means store bytes from 5th index and split when null character(\x00) is seen and pick the first item from the list[0]
     return version             
  
 
