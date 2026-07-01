@@ -64,8 +64,22 @@ def bannerGrab_mysql(client):
     return version             
  
 
+def bannerGrab_smtp(client, TARGET):
+    version=""
+    response = client.recv(4096).decode(errors="ignore").replace("\r\n","")
+    for data in response: # this loop part is to remove digits (status code) from the smtp response
+        data = any(data.isdigit()) # checks if the character is digit or not
+        if data != True:
+            version = version + data
+    version = version.replace(TARGET, "").replace("ESMTP", "").replace("SMTP", "").strip() # remove unecessary string for better parsing
+    return version
+
+    
+
 
 def bannerGrab_http(client, TARGET): # port 80 http banner grabbing
+    # services like http wait for the client to send a message and then the server replies so 
+    # the below request payload is created to send a message to the client
     request_payload = (
         f"GET / HTTP/1.1\r\n"
         f"Host: {TARGET}\r\n"
@@ -91,7 +105,7 @@ def bannerGrab(client, TARGET, port): # banner grabbing
     elif port == 22:
         return bannerGrab_ssh(client)
     elif port == 25:
-        pass
+        return bannerGrab_smtp(client, TARGET)
     elif port == 80:
         return bannerGrab_http(client, TARGET)
     elif port == 3306:
