@@ -66,13 +66,16 @@ def bannerGrab_mysql(client):
 
 def bannerGrab_smtp(client, TARGET):
     version=""
+    status_code=""
     response = client.recv(4096).decode(errors="ignore").replace("\r\n","")
     count = 0
     for data in response: # this loop part is to remove digits (status code) from the smtp response
-        if not data.isdigit() and count == 3:# checks if the character is digit or not
-            version = version + data
+        if count == 3:
+            break
+        if data.isdigit():# checks if the character is digit or not
+            status_code = status_code + data
             count = count + 1 # so there will be version digits as well so that we dont remove that by mistake i am only removing status codes which are 3 digits by maintaining a counter
-    version = version.replace(TARGET, "").replace("ESMTP", "").replace("SMTP", "").strip() # remove unecessary string for better parsing
+    version = response.replace(status_code, "").replace(TARGET, "").replace("ESMTP", "").replace("SMTP", "").strip() # remove unecessary string for better parsing
     return version
 
     
