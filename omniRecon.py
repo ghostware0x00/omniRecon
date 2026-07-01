@@ -68,8 +68,7 @@ def bannerGrab_smtp(client, TARGET):
     version=""
     response = client.recv(4096).decode(errors="ignore").replace("\r\n","")
     for data in response: # this loop part is to remove digits (status code) from the smtp response
-        data = any(data.isdigit()) # checks if the character is digit or not
-        if data != True:
+        if not data.isdigit():# checks if the character is digit or not
             version = version + data
     version = version.replace(TARGET, "").replace("ESMTP", "").replace("SMTP", "").strip() # remove unecessary string for better parsing
     return version
@@ -100,7 +99,7 @@ def bannerGrab_http(client, TARGET): # port 80 http banner grabbing
 def bannerGrab(client, TARGET, port): # banner grabbing
     #implement individual bannerGrab and parsing for each port service
     # services parsing and banner grabbing to be implemented => ftp, ssh, telnet, smtp, mysql
-    if port in (21,23,25):
+    if port in (21,23):
         return bannerGrab_immediateResponse(client)
     elif port == 22:
         return bannerGrab_ssh(client)
