@@ -28,7 +28,7 @@ def display_scan_output(scan_results): # display scan_result output from the dic
         f"{Fore.GREEN}{scan_results['version']}"
     )
 
-def bannerGrab_ftp_telnet(client):# port 21 23 ftp telnet banner grabbing
+def bannerGrab_immediateResponse(client):# port 21 23 ftp telnet banner grabbing
     version = client.recv(4096).decode(errors="ignore").strip()
     return version
 
@@ -37,6 +37,32 @@ def bannerGrab_ssh(client):# port 22 ssh banner grabbing
     version = client.recv(4096).decode(errors="ignore").split("-")
     version = ''.join(version).strip().replace("SSH2.0", "")
     return version
+
+
+def bannerGrab_mysql(client):
+    version = ""
+    content = client.recv(4096)
+    # +--------------------+
+    # | Packet Length      | 3 bytes (0-2)
+    # +--------------------+
+    # | Sequence ID        | 1 byte (3)
+    # +--------------------+
+    # | Protocol Version   | 1 byte (4)
+    # +--------------------+
+    # | Server Version     | Variable length (5)
+    # |                    | Ends with 0x00
+    # +--------------------+
+    # | Connection ID      | 4 bytes
+    # +--------------------+
+    # | Authentication...  |
+    # | Capability Flags...|
+    # | Character Set...   |
+    # | Status Flags...    |
+    # | ...                |
+    # +--------------------+
+    version = content[5:].split(b'\x00')[0].decode(errors="ignore") # content[5:] means store bytes from 5th index and split when null character(\x00) is seen and pick the first part [0]
+    return version             
+ 
 
 
 def bannerGrab_http(client, TARGET): # port 80 http banner grabbing
@@ -60,18 +86,16 @@ def bannerGrab_http(client, TARGET): # port 80 http banner grabbing
 def bannerGrab(client, TARGET, port): # banner grabbing
     #implement individual bannerGrab and parsing for each port service
     # services parsing and banner grabbing to be implemented => ftp, ssh, telnet, smtp, mysql
-    if port == 21:
-        return bannerGrab_ftp_telnet(client)
+    if port in (21,23,25):
+        return bannerGrab_immediateResponse(client)
     elif port == 22:
         return bannerGrab_ssh(client)
-    elif port == 23:
-        return bannerGrab_ftp_telnet(client)
     elif port == 25:
         pass
     elif port == 80:
         return bannerGrab_http(client, TARGET)
     elif port == 3306:
-        pass
+        return bannerGrab_mysql(client)
 
 def fullTCPScan(TARGET, PORT):
     # the port_scanning should accept multiple ports
