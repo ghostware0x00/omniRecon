@@ -24,9 +24,9 @@ COMMON_SERVICES = {
 def display_scan_output(scan_results): # display scan_result output from the dictionary
     print(
         f"{Style.BRIGHT}{Fore.YELLOW}{scan_results['port']:<10}"
-        f"{Style.BRIGHT}{scan_results['state']:<10}"
-        f"{Style.BRIGHT}{scan_results['service']:<12}"
-        f"{Style.BRIGHT}{scan_results['version']}"
+        f"{Style.BRIGHT}{Fore.MAGENTA}{scan_results['state']:<10}"
+        f"{Style.BRIGHT}{Fore.BLUE}{scan_results['service']:<12}"
+        f"{Style.BRIGHT}{Fore.CYAN}{scan_results['version']}"
     )
 
 def bannerGrab_immediateResponse(client):# port 21 23 ftp telnet banner grabbing
