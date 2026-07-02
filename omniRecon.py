@@ -111,6 +111,8 @@ def bannerGrab(client, TARGET, port): # banner grabbing
         return bannerGrab_pop3(client)
     elif port == 3306:
         return bannerGrab_mysql(client)
+    else:
+        return bannerGrab_immediateResponse(client)
 
 
 
