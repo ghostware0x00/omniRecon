@@ -1,5 +1,6 @@
 import socket
 import argparse
+import re # for pattern matching and parsing scanner responses
 from colorama import Fore, Style, init # colorama to add color to text displayed using print() function
 init(autoreset=True)# resets color of the print() text each time 
 
@@ -7,10 +8,10 @@ COMMON_SERVICES = {
     21: "ftp", # done
     22: "ssh", # done
     23: "telnet", # done
-    25: "smtp", 
+    25: "smtp", # done
     53: "dns",
     80: "http", # done
-    110: "pop3",
+    110: "pop3", # done
     143: "imap",
     443: "https", 
     445: "smb",
@@ -22,10 +23,10 @@ COMMON_SERVICES = {
 
 def display_scan_output(scan_results): # display scan_result output from the dictionary
     print(
-        f"{Fore.GREEN}{scan_results['port']:<10}"
-        f"{Fore.GREEN}{scan_results['state']:<10}"
-        f"{Fore.GREEN}{scan_results['service']:<12}"
-        f"{Fore.GREEN}{scan_results['version']}"
+        f"{Style.BRIGHT}{Fore.YELLOW}{scan_results['port']:<10}"
+        f"{Style.BRIGHT}{scan_results['state']:<10}"
+        f"{Style.BRIGHT}{scan_results['service']:<12}"
+        f"{Style.BRIGHT}{scan_results['version']}"
     )
 
 def bannerGrab_immediateResponse(client):# port 21 23 ftp telnet banner grabbing
@@ -34,8 +35,8 @@ def bannerGrab_immediateResponse(client):# port 21 23 ftp telnet banner grabbing
 
 
 def bannerGrab_ssh(client):# port 22 ssh banner grabbing
-    version = client.recv(4096).decode(errors="ignore").split("-")
-    version = ''.join(version).strip().replace("SSH2.0", "")
+    response = client.recv(4096).decode(errors="ignore")
+    version = re.sub(r"^\s+|\s$|SSH-2.0-?", "", response)
     return version
 
 
@@ -64,21 +65,18 @@ def bannerGrab_mysql(client):
     return version             
  
 
-def bannerGrab_smtp(client, TARGET):
+def bannerGrab_smtp(client, TARGET):# port 25 smtp banner grabbing
     version=""
     status_code=""
     response = client.recv(4096).decode(errors="ignore").replace("\r\n","")
-    count = 0
-    for data in response: # this loop part is to remove digits (status code) from the smtp response
-        if count == 3:
-            break
-        if data.isdigit():# checks if the character is digit or not
-            status_code = status_code + data
-            count = count + 1 # so there will be version digits as well so that we dont remove that by mistake i am only removing status codes which are 3 digits by maintaining a counter
-    version = response.replace(status_code, "").replace(TARGET, "").replace("ESMTP", "").replace("SMTP", "").strip() # remove unecessary string for better parsing
+    version = re.sub(r"^\d{3}\s+|E?SMTP", "", response)
     return version
 
-    
+
+def bannerGrab_pop3(client):# port 110 pop3 banner grabbing
+    response = client.recv(4096).decode(errors="ignore")
+    version = re.sub(r"^\s+|\s+$|\+OK", "", response)
+    return version
 
 
 def bannerGrab_http(client, TARGET): # port 80 http banner grabbing
@@ -112,8 +110,12 @@ def bannerGrab(client, TARGET, port): # banner grabbing
         return bannerGrab_smtp(client, TARGET)
     elif port == 80:
         return bannerGrab_http(client, TARGET)
+    elif port == 110:
+        return bannerGrab_pop3(client)
     elif port == 3306:
         return bannerGrab_mysql(client)
+
+
 
 def fullTCPScan(TARGET, PORT):
     # the port_scanning should accept multiple ports
@@ -147,11 +149,13 @@ def fullTCPScan(TARGET, PORT):
                 display_scan_output(scan_results)
 
 
+
 def parseInput(TARGET): # remove http or https and 
-    if "http://" in TARGET:
-        TARGET = TARGET.replace("http://", "")
-    elif "https://" in TARGET:
-        TARGET = TARGET.replace("https://", "")
+    # r"" is used for raw string checking
+    # ^ = starting $ = ending
+    # \s+ one or multiple spaces and ^\s+ removes starting spaces and \s+$ removes ending spaces
+    # https? means basically subtract https or http string the ? just after s makes s optional so regex will look for both patterns and :// will also get subtracted
+    TARGET = re.sub(r"^\s+|\s+$|https?://", "", TARGET)
     return TARGET
 
 
