@@ -41,7 +41,6 @@ def bannerGrab_ssh(client):# port 22 ssh banner grabbing
 
 
 def bannerGrab_mysql(client):
-    version = ""
     content = client.recv(4096)
     # +--------------------+
     # | Packet Length      | 3 bytes (0-2)
@@ -66,8 +65,6 @@ def bannerGrab_mysql(client):
  
 
 def bannerGrab_smtp(client, TARGET):# port 25 smtp banner grabbing
-    version=""
-    status_code=""
     response = client.recv(4096).decode(errors="ignore").replace("\r\n","")
     version = re.sub(r"^\d{3}\s+|E?SMTP", "", response)
     return version
