@@ -1,8 +1,8 @@
-import os
-import socket
+import os # used to exit program
+import socket # used to establish communication with server
 import ssl # used to communicate with https protocol
-import re # for pattern matching and parsing scanner responses
-import argparse
+import re # used for pattern matching and parsing scanner responses
+import argparse # used for command line argument parsing
 
 from colorama import Fore, Style, init # colorama to add color to text displayed using print() function
 init(autoreset=True)# resets color of the print() text each time 
