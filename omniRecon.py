@@ -1,6 +1,9 @@
+import os
 import socket
-import argparse
+import ssl # used to communicate with https protocol
 import re # for pattern matching and parsing scanner responses
+import argparse
+
 from colorama import Fore, Style, init # colorama to add color to text displayed using print() function
 init(autoreset=True)# resets color of the print() text each time 
 
@@ -95,6 +98,16 @@ def bannerGrab_http(client, TARGET): # port 80 http banner grabbing
                 return version
 
 
+def bannerGrab_https(client, TARGET):# port 443 https banner grabbing
+    # function to wrap the unencrypted tcp socket to encrypted ssl/tls socket
+    # this creates a secured communication channel between server and client
+    # so before sending raw data first to https we need to create a secured channel first and only then we can send data to the server
+    context = ssl.create_default_context() # used to load ca certificates 
+    secure_socket = context.wrap_socket(client, server_hostname=TARGET) # initiates tls handshake 
+    return bannerGrab_http(secure_socket, TARGET)
+
+
+
 
 def bannerGrab(client, TARGET, port): # banner grabbing
     #implement individual bannerGrab and parsing for each port service
@@ -109,6 +122,8 @@ def bannerGrab(client, TARGET, port): # banner grabbing
         return bannerGrab_http(client, TARGET)
     elif port == 110:
         return bannerGrab_pop3(client)
+    elif port == 443:
+        return bannerGrab_https(client, TARGET)
     elif port == 3306:
         return bannerGrab_mysql(client)
     else:
@@ -141,7 +156,7 @@ def fullTCPScan(TARGET, PORT):
                 scan_results['state'] = 'closed'
             except OSError as e:
                 print(f"{Fore.RED}Couldn't connect to target. Target Unreachable: {e}")
-                break
+                os._exit(0)
             except KeyboardInterrupt:
                 print(f"{Fore.RED}[x]closing omniRecon port scanning...")
             finally:
