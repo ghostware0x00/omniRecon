@@ -183,7 +183,6 @@ def directory_bruteforcing(TARGET, wordlist): # function to perform directory
                         print(f"{Fore.CYAN}{word} ( Status: {response.status_code})")
                 except KeyboardInterrupt:
                     print(f"{Style.RED}[x]Exiting omniRecon")
-                    os._exit(0)
                 except OSError as e:
                     print(f"{Style.RED}couldn't reach target server: {e}")
     except FileNotFoundError as f:
