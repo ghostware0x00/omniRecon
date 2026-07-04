@@ -1,9 +1,9 @@
 import os # used to exit program
 import socket # used to establish communication with server
+import requests
 import ssl # used to communicate with https protocol
 import re # used for pattern matching and parsing scanner responses
 import argparse # used for command line argument parsing
-
 from colorama import Fore, Style, init # colorama to add color to text displayed using print() function
 init(autoreset=True)# resets color of the print() text each time 
 
@@ -164,6 +164,10 @@ def fullTCPScan(TARGET, PORT):
 
 
 
+def directory_bruteforcing(TARGET, wordlist): # function to perform directory
+    pass
+
+
 def parseInput(TARGET): # remove http or https and 
     # r"" is used for raw string checking
     # ^ = starting $ = ending
@@ -178,6 +182,7 @@ def parseArgs():
     parser.add_argument("-t", "--target", metavar="www.example.com", help="Provide domain name or IP address") # metavar = placeholder for the value which you need to give # help = description for the placeholder about what to input
     parser.add_argument("-p", "--port", nargs='*' ,metavar="80", help="Provide target port to connect with") # nargs allows multiple values for a single command line argument also nargs='*' allows 0 or more values to be given as command line value. nargs takes the values as list []
     parser.add_argument("-sT", "--fullTCP", action="store_true", help="Perform Full TCP Scan (3 way Handshake)")# argument to perform Full TCP 3 way Handshake Scan
+    parser.add_argument("-w", "--wordlist", metavar="rockyou.txt", help="Provide wordlist")# provide wordlist absolute path
     return parser.parse_args()
 
 
@@ -187,6 +192,8 @@ def get_args():
     if args.fullTCP and args.target and args.port:
         args.target = parseInput(args.target)
         fullTCPScan(args.target, args.port)
+    elif args.target and args.wordlist:
+        directory_bruteforcing(args.target, args.wordlist)
     else:
         print(f"{Style.BRIGHT}{Fore.YELLOW}[x]missing or incorrect arguments")
 
