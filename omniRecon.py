@@ -171,11 +171,12 @@ def append_http(TARGET):
 
 def directory_bruteforcing(TARGET, wordlist): # function to perform directory
     status_codes = [200, 201, 301, 302, 401, 403]
+    skip_chars = ("#", "!", ";", "//")
     print(f"{Style.BRIGHT}{Fore.GREEN}[*]Starting omniRecon Directory Bruteforce Attack\n")
-    print(f"[+]Url/Domain] : {TARGET}")
-    print(f"[+]Wordlist : {wordlist}")
-    print("[+]Status codes : ",*status_codes, sep=", ")# *<list_variable> produces spaces between each list element and sep=", " separates each element by commas,
-    print("============================================\n")
+    print(f"{Style.BRIGHT}{Fore.GREEN}[+]Url/Domain : {TARGET}")
+    print(f"{Style.BRIGHT}{Fore.GREEN}[+]Wordlist : {wordlist}")
+    print(f"{Style.BRIGHT}{Fore.GREEN}[+]Status codes : {status_codes}")
+    print()
     try:
         with open(wordlist, "r", errors="ignore") as file:
             for word in file:
@@ -183,15 +184,17 @@ def directory_bruteforcing(TARGET, wordlist): # function to perform directory
                 if not word:
                     continue
                 try:
-                    word = word.replace("\n", "")
+                    if word.startswith(skip_chars):
+                        continue
                     url = f"{TARGET}/{word}"
                     response = requests.get(url, timeout=5)
                     if response.status_code in status_codes:
-                        print(f"{Fore.CYAN}{word} ( Status: {response.status_code})")
+                        print(f"{Fore.CYAN}{url} ( Status: {response.status_code})")
                 except KeyboardInterrupt:
                     print(f"{Style.RED}[x]Exiting omniRecon")
                 except requests.exceptions.ConnectTimeout as ct:
-                    continue
+                    print(f"couldn't connect to target : {ct}")
+                    os._exit(0)
                 except requests.exceptions.ReadTimeout as rt:
                     print(f"{Fore.RED}[x]request timeout: {rt}")
     except FileNotFoundError as f:
