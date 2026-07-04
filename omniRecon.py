@@ -165,7 +165,29 @@ def fullTCPScan(TARGET, PORT):
 
 
 def directory_bruteforcing(TARGET, wordlist): # function to perform directory
-    pass
+    status_codes = [200, 201, 301, 302, 401, 403]
+    print(f"{Style.BRIGHT}{Fore.GREEN}[*]Starting omniRecon Directory Bruteforce Attack\n")
+    print(f"[+]Url/Domain] : {TARGET}")
+    print(f"[+]Wordlist : {wordlist}")
+    print("[+]Status codes : ",*status_codes, sep=", ")# *<list_variable> produces spaces between each list element and sep=", " separates each element by commas,
+    print("============================================\n")
+    print(f"\tomniRecon Directory Bruteforce Attack")
+    print("============================================\n")
+    try:
+        with open(wordlist, "r") as file:
+            words = file.read()
+            for word in words:
+                try:
+                    response = requests.get(f"{TARGET}{word}")
+                    if response.status_code in status_codes:
+                        print(f"{Fore.CYAN}{word} ( Status: {response.status_code})")
+                except KeyboardInterrupt:
+                    print(f"{Style.RED}[x]Exiting omniRecon")
+                    os._exit(0)
+                except OSError as e:
+                    print(f"{Style.RED}couldn't reach target server: {e}")
+    except FileNotFoundError as f:
+        print(f"{Fore.RED}{f}")    
 
 
 def parseInput(TARGET): # remove http or https and 
