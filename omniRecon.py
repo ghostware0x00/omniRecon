@@ -162,6 +162,11 @@ def fullTCPScan(TARGET, PORT):
             finally:
                 display_scan_output(scan_results)
 
+def append_http(TARGET):
+    if not TARGET.startswith("http://") or TARGET.startswith("https://"):
+        TARGET = "http://"+TARGET
+    return TARGET
+
 
 
 def directory_bruteforcing(TARGET, wordlist): # function to perform directory
@@ -171,20 +176,24 @@ def directory_bruteforcing(TARGET, wordlist): # function to perform directory
     print(f"[+]Wordlist : {wordlist}")
     print("[+]Status codes : ",*status_codes, sep=", ")# *<list_variable> produces spaces between each list element and sep=", " separates each element by commas,
     print("============================================\n")
-    print(f"\tomniRecon Directory Bruteforce Attack")
-    print("============================================\n")
     try:
-        with open(wordlist, "r") as file:
-            words = file.read()
-            for word in words:
+        with open(wordlist, "r", errors="ignore") as file:
+            for word in file:
+                word = word.strip()
+                if not word:
+                    continue
                 try:
-                    response = requests.get(f"{TARGET}{word}")
+                    word = word.replace("\n", "")
+                    url = f"{TARGET}/{word}"
+                    response = requests.get(url, timeout=5)
                     if response.status_code in status_codes:
                         print(f"{Fore.CYAN}{word} ( Status: {response.status_code})")
                 except KeyboardInterrupt:
                     print(f"{Style.RED}[x]Exiting omniRecon")
-                except OSError as e:
-                    print(f"{Style.RED}couldn't reach target server: {e}")
+                except requests.exceptions.ConnectTimeout as ct:
+                    continue
+                except requests.exceptions.ReadTimeout as rt:
+                    print(f"{Fore.RED}[x]request timeout: {rt}")
     except FileNotFoundError as f:
         print(f"{Fore.RED}{f}")    
 
@@ -203,6 +212,7 @@ def parseArgs():
     parser.add_argument("-t", "--target", metavar="www.example.com", help="Provide domain name or IP address") # metavar = placeholder for the value which you need to give # help = description for the placeholder about what to input
     parser.add_argument("-p", "--port", nargs='*' ,metavar="80", help="Provide target port to connect with") # nargs allows multiple values for a single command line argument also nargs='*' allows 0 or more values to be given as command line value. nargs takes the values as list []
     parser.add_argument("-sT", "--fullTCP", action="store_true", help="Perform Full TCP Scan (3 way Handshake)")# argument to perform Full TCP 3 way Handshake Scan
+    parser.add_argument("-dir", action="store_true", help="directory bruteforcing")# directory bruteforcing switch
     parser.add_argument("-w", "--wordlist", metavar="rockyou.txt", help="Provide wordlist")# provide wordlist absolute path
     return parser.parse_args()
 
@@ -213,7 +223,8 @@ def get_args():
     if args.fullTCP and args.target and args.port:
         args.target = parseInput(args.target)
         fullTCPScan(args.target, args.port)
-    elif args.target and args.wordlist:
+    elif args.dir and args.target and args.wordlist:
+        args.target = append_http(args.target)
         directory_bruteforcing(args.target, args.wordlist)
     else:
         print(f"{Style.BRIGHT}{Fore.YELLOW}[x]missing or incorrect arguments")
