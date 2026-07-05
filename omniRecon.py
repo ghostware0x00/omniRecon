@@ -163,7 +163,7 @@ def fullTCPScan(TARGET, PORT):
                 display_scan_output(scan_results)
 
 def append_http(TARGET):
-    if not TARGET.startswith("http://") or TARGET.startswith("https://"):
+    if not TARGET.startswith(("http://", "https://")):
         TARGET = "http://"+TARGET
     return TARGET
 
@@ -173,10 +173,10 @@ def directory_bruteforcing(TARGET, wordlist): # function to perform directory
     status_codes = [200, 201, 301, 302, 401, 403]
     skip_chars = ("#", "!", ";", "//")
     print(f"{Style.BRIGHT}{Fore.GREEN}[*]Starting omniRecon Directory Bruteforce Attack\n")
-    print(f"[+]Url/Domain : {TARGET}")
-    print(f"[+]Wordlist : {wordlist}")
-    print(f"[+]Status codes : {status_codes}")
-    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+    print(f"{Style.BRIGHT}{Fore.YELLOW}[+]Url/Domain : {TARGET}")
+    print(f"{Style.BRIGHT}{Fore.YELLOW}[+]Wordlist : {wordlist}")
+    print(f"{Style.BRIGHT}{Fore.YELLOW}[+]Status codes : {status_codes}")
+    print()
     try:
         with open(wordlist, "r", errors="ignore") as file:
             for word in file:
