@@ -173,10 +173,10 @@ def directory_bruteforcing(TARGET, wordlist): # function to perform directory
     status_codes = [200, 201, 301, 302, 401, 403]
     skip_chars = ("#", "!", ";", "//")
     print(f"{Style.BRIGHT}{Fore.GREEN}[*]Starting omniRecon Directory Bruteforce Attack\n")
-    print(f"{Style.BRIGHT}{Fore.GREEN}[+]Url/Domain : {TARGET}")
-    print(f"{Style.BRIGHT}{Fore.GREEN}[+]Wordlist : {wordlist}")
-    print(f"{Style.BRIGHT}{Fore.GREEN}[+]Status codes : {status_codes}")
-    print()
+    print(f"[+]Url/Domain : {TARGET}")
+    print(f"[+]Wordlist : {wordlist}")
+    print(f"[+]Status codes : {status_codes}")
+    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
     try:
         with open(wordlist, "r", errors="ignore") as file:
             for word in file:
@@ -189,7 +189,7 @@ def directory_bruteforcing(TARGET, wordlist): # function to perform directory
                     url = f"{TARGET}/{word}"
                     response = requests.get(url, timeout=5)
                     if response.status_code in status_codes:
-                        print(f"{Fore.CYAN}{url} ( Status: {response.status_code})")
+                        print(f"{Fore.CYAN}{url} ({response.status_code})")
                 except KeyboardInterrupt:
                     print(f"{Style.RED}[x]Exiting omniRecon")
                 except requests.exceptions.ConnectTimeout as ct:
