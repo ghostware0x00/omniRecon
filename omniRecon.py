@@ -183,7 +183,7 @@ def directory_bruteforcing(TARGET, wordlist, response_size=0):
                         continue
                     url = f"{TARGET}/{word}"
                     response = requests.get(url, timeout=5)
-                    if response.status_code in status_codes and len(response) != response_size:
+                    if response.status_code in status_codes and len(response.content) != response_size:
                         print(f"{Fore.CYAN}{url} ({response.status_code})")
                 except KeyboardInterrupt:
                     print(f"{Style.RED}[x]Exiting omniRecon")
@@ -204,13 +204,19 @@ def wildcard_check(TARGET, wordlist): # function to perform directory
     print()
     wildcard = uuid.uuid4() # A uuid4() string is a 36-character text representation of a 128-bit number that is generated almost entirely through cryptographic randomness.
     wildcard_url = f"{TARGET}/{wildcard}" # wildcard generated random URL
-    wildcard_response = requests.get(wildcard_url, timeout=5)
+    try:
+        wildcard_response = requests.get(wildcard_url, timeout=5)
+    except requests.exceptions.ConnectTimeout as ct:
+        print(f"couldn't connect to target : {ct}")
+        os._exit(0)
+    except requests.exceptions.ReadTimeout as rt:
+        print(f"{Fore.RED}[x]request timeout: {rt}")
     # implement wildcard entry checking for directory bruteforcing
     if wildcard_response.status_code == 404:
         directory_bruteforcing(TARGET, wordlist)
-    elif wildcard_response.status_code in (200, 301, 302):
+    elif wildcard_response.status_code in (200, 301, 302, 403):
         print(f"{Fore.MAGENTA}[*]Wildcard server detected in {TARGET} using wildcard generated url -> {wildcard_url}")
-        directory_bruteforcing(TARGET, wordlist, len(wildcard_response))# response size is sent in bytes
+        directory_bruteforcing(TARGET, wordlist, len(wildcard_response.content))# response size is sent in bytes
 
 
 def parseInput(TARGET): # remove http or https and 
