@@ -183,7 +183,7 @@ def directory_bruteforcing(TARGET, wordlist, response_size=0):
                         continue
                     url = f"{TARGET}/{word}"
                     response = requests.get(url, timeout=5)
-                    if response.status_code in status_codes and len(response.content) != response_size:
+                    if response.status_code in status_codes:
                         print(f"{Fore.CYAN}{url} ({response.status_code})")
                 except KeyboardInterrupt:
                     print(f"{Style.RED}[x]Exiting omniRecon")
@@ -202,21 +202,27 @@ def wildcard_check(TARGET, wordlist): # function to perform directory
     print(f"{Style.BRIGHT}{Fore.YELLOW}[+]Wordlist : {wordlist}")
     print(f"{Style.BRIGHT}{Fore.YELLOW}[+]Status codes : 200 201 301 302 401 403")
     print()
-    wildcard = uuid.uuid4() # A uuid4() string is a 36-character text representation of a 128-bit number that is generated almost entirely through cryptographic randomness.
-    wildcard_url = f"{TARGET}/{wildcard}" # wildcard generated random URL
+    wildcard1 = uuid.uuid4() # A uuid4() string is a 36-character text representation of a 128-bit number that is generated almost entirely through cryptographic randomness.
+    wildcard2 = uuid.uuid4()
+    wildcard3 = uuid.uuid4()
+    wildurl1 = f"{TARGET}/{wildcard1}"    
+    wildurl2 = f"{TARGET}/{wildcard2}"    
+    wildurl3 = f"{TARGET}/{wildcard3}"    
     try:
-        wildcard_response = requests.get(wildcard_url, timeout=5)
+        wildcard1_response = requests.get(wildurl1, timeout=5)
+        wildcard2_response = requests.get(wildurl2, timeout=5)
+        wildcard3_response = requests.get(wildurl3, timeout=5)
     except requests.exceptions.ConnectTimeout as ct:
         print(f"couldn't connect to target : {ct}")
         os._exit(0)
     except requests.exceptions.ReadTimeout as rt:
         print(f"{Fore.RED}[x]request timeout: {rt}")
     # implement wildcard entry checking for directory bruteforcing
-    if wildcard_response.status_code == 404:
+    if wildcard1_response.status_code and wildcard2_response.status_code and wildcard3_response.status_code == 404:
         directory_bruteforcing(TARGET, wordlist)
-    elif wildcard_response.status_code in (200, 301, 302, 403):
-        print(f"{Fore.MAGENTA}[*]Wildcard server detected in {TARGET} using wildcard generated url -> {wildcard_url}")
-        directory_bruteforcing(TARGET, wordlist, len(wildcard_response.content))# response size is sent in bytes
+    elif wildcard1_response.status_code and wildcard2_response.status_code and wildcard3_response.status_code in (200, 301, 302, 403):
+        print(f"{Fore.MAGENTA}[*]Wildcard server detected in {TARGET} using wildcard generated urls")
+        print(f"{Fore.MAGENTA}wilcard urls tested\n{wildurl1}\n{wildurl2}\n{wildurl3}")
 
 
 def parseInput(TARGET): # remove http or https and 
