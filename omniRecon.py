@@ -2,6 +2,7 @@ import os # used to exit program
 import socket # used to establish communication with server
 import requests
 import ssl # used to communicate with https protocol
+import uuid # used to generate a random string for wildcard
 import re # used for pattern matching and parsing scanner responses
 import argparse # used for command line argument parsing
 from colorama import Fore, Style, init # colorama to add color to text displayed using print() function
@@ -168,15 +169,9 @@ def append_http(TARGET):
     return TARGET
 
 
-
-def directory_bruteforcing(TARGET, wordlist): # function to perform directory
-    status_codes = [200, 201, 301, 302, 401, 403]
+def directory_bruteforcing(TARGET, wordlist, response_size=0):
     skip_chars = ("#", "!", ";", "//")
-    print(f"{Style.BRIGHT}{Fore.GREEN}[*]Starting omniRecon Directory Bruteforce Attack\n")
-    print(f"{Style.BRIGHT}{Fore.YELLOW}[+]Url/Domain : {TARGET}")
-    print(f"{Style.BRIGHT}{Fore.YELLOW}[+]Wordlist : {wordlist}")
-    print(f"{Style.BRIGHT}{Fore.YELLOW}[+]Status codes : {status_codes}")
-    print()
+    status_codes = [200, 201, 301, 302, 401, 403]
     try:
         with open(wordlist, "r", errors="ignore") as file:
             for word in file:
@@ -188,7 +183,7 @@ def directory_bruteforcing(TARGET, wordlist): # function to perform directory
                         continue
                     url = f"{TARGET}/{word}"
                     response = requests.get(url, timeout=5)
-                    if response.status_code in status_codes:
+                    if response.status_code in status_codes and len(response) != response_size:
                         print(f"{Fore.CYAN}{url} ({response.status_code})")
                 except KeyboardInterrupt:
                     print(f"{Style.RED}[x]Exiting omniRecon")
@@ -199,6 +194,23 @@ def directory_bruteforcing(TARGET, wordlist): # function to perform directory
                     print(f"{Fore.RED}[x]request timeout: {rt}")
     except FileNotFoundError as f:
         print(f"{Fore.RED}{f}")    
+
+
+def wildcard_check(TARGET, wordlist): # function to perform directory
+    print(f"{Style.BRIGHT}{Fore.GREEN}[*]Starting omniRecon Directory Bruteforce Attack\n")
+    print(f"{Style.BRIGHT}{Fore.YELLOW}[+]Url/Domain : {TARGET}")
+    print(f"{Style.BRIGHT}{Fore.YELLOW}[+]Wordlist : {wordlist}")
+    print(f"{Style.BRIGHT}{Fore.YELLOW}[+]Status codes : 200 201 301 302 401 403")
+    print()
+    wildcard = uuid.uuid4() # A uuid4() string is a 36-character text representation of a 128-bit number that is generated almost entirely through cryptographic randomness.
+    wildcard_url = f"{TARGET}/{wildcard}" # wildcard generated random URL
+    wildcard_response = requests.get(wildcard_url, timeout=5)
+    # implement wildcard entry checking for directory bruteforcing
+    if wildcard_response.status_code == 404:
+        directory_bruteforcing(TARGET, wordlist)
+    elif wildcard_response.status_code in (200, 301, 302):
+        print(f"{Fore.MAGENTA}[*]Wildcard server detected in {TARGET} using wildcard generated url -> {wildcard_url}")
+        directory_bruteforcing(TARGET, wordlist, len(wildcard_response))# response size is sent in bytes
 
 
 def parseInput(TARGET): # remove http or https and 
@@ -228,7 +240,7 @@ def get_args():
         fullTCPScan(args.target, args.port)
     elif args.dir and args.target and args.wordlist:
         args.target = append_http(args.target)
-        directory_bruteforcing(args.target, args.wordlist)
+        wildcard_check(args.target, args.wordlist)
     else:
         print(f"{Style.BRIGHT}{Fore.YELLOW}[x]missing or incorrect arguments")
 
